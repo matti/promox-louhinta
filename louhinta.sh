@@ -143,7 +143,7 @@ case $old_crontab in
     echo "already configured in crontab"
   ;;
   *)
-    printf "${old_crontab}\n@reboot screen -dmS louhinta /root/.louhinta/startup\n" | crontab
+    printf "${old_crontab}\n@reboot screen -dmS louhinta bash -l -c '/root/.louhinta/startup'\n" | crontab
   ;;
 esac
 
