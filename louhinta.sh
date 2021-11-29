@@ -29,6 +29,12 @@ NAME="${HOSTNAME}-louhinta"
 MINERSTAT_VERSION="msos-v1-4-K50-N460-A2030"
 MINERSTAT_WORKER="$(hostname)"
 
+for package in bc unzip; do
+  if ! command -v "${package}"; then
+    apt-get update && apt-get install -y --no-install-recommends "${package}"
+  fi
+done
+
 mkdir -p /root/.louhinta
 
 set +e
