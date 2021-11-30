@@ -3,8 +3,13 @@ set -euo pipefail
 
 MINERSTAT_ACCESSKEY=${1:-}
 if [ "${MINERSTAT_ACCESSKEY}" = "" ]; then
-  echo "USAGE: ./louhinta.sh MINERSTAT_ACCESSKEY"
+  echo "USAGE: ./louhinta.sh MINERSTAT_ACCESSKEY [MINERSTAT_WORKER=hostname]"
   exit 1
+fi
+
+MINERSTAT_WORKER="${2:-}"
+if [ "${MINERSTAT_WORKER}" = "" ]; then
+  MINERSTAT_WORKER="$(hostname)"
 fi
 
 if ! cat /proc/cmdline | grep "_iommu=on" >/dev/null; then
@@ -27,9 +32,9 @@ CORES=1
 MEMORY=2048
 NAME="${HOSTNAME}-louhinta"
 MINERSTAT_VERSION="msos-v1-4-K50-N460-A2030"
-MINERSTAT_WORKER="$(hostname)"
 
-for package in bc unzip; do
+
+for package in bc unzip screen; do
   if ! command -v "${package}"; then
     apt-get update && apt-get install -y --no-install-recommends "${package}"
   fi
