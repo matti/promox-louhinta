@@ -12,6 +12,8 @@ if [ "${MINERSTAT_WORKER}" = "" ]; then
   MINERSTAT_WORKER="$(hostname)"
 fi
 
+apt-get update
+
 if ! cat /proc/cmdline | grep "_iommu=on" >/dev/null; then
   echo "iommu not configured, write yes to configure and reboot"
   read input
@@ -20,8 +22,21 @@ if ! cat /proc/cmdline | grep "_iommu=on" >/dev/null; then
     exit 1
   fi
 
-  sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="amd_iommu=on intel_iommu=on iommu=pt pcie_acs_override=downstream,multifunction nofb nomodeset video=vesafb:off,efifb:off"/' /etc/default/grub
+  iommu_stuff="amd_iommu=on intel_iommu=on iommu=pt pcie_acs_override=downstream,multifunction nofb nomodeset video=vesafb:off,efifb:off"
+
+  sed -i "s/GRUB_CMDLINE_LINUX=\"\"/GRUB_CMDLINE_LINUX=\"${iommu_stuff}\"/" /etc/default/grub
+  # handle zfs raid
+  sed -i "s/boot=zfs$/boot=zfs ${iommu_stuff}/" /etc/kernel/cmdline
+
+  # this will call pve-efiboot-tool refresh if zfs raid (atleast in proxmox 7.2)
   update-grub
+
+  if [[ ! -f /etc/modprobe.d/blacklist.conf  ]]; then
+    echo 'blacklist radeon' > /etc/modprobe.d/blacklist.conf
+    echo 'blacklist nouveau' >> /etc/modprobe.d/blacklist.conf
+    echo 'blacklist nvidia' >> /etc/modprobe.d/blacklist.conf
+  fi
+
   echo "reboot!"
   reboot
 else
